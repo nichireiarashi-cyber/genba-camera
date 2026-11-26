@@ -12,7 +12,7 @@
 <div id="o"><p>読み込んでいます…</p></div>
 <script>
 // AiCONカメラ(現場)の入口。画面の本体と見本の写真は、リンクの鍵を確かめてからGoogleが渡す(ここには何も置かない)
-const API='https://script.google.com/macros/s/AKfycby45zVsh3JbZauIDJrD3SUc7Ze_Q8lN9021bbfdE6mOkx17_Br0lYgUxY6sEnkmEh9Z/exec';
+const API='https://script.google.com/macros/s/AKfycbxgy8vDKEh41fEygoM7yN893YwYfc8vW93ivVblweCdcMWYjg4l8c4YgZldt49uf-hp-g/exec';
 const q=new URLSearchParams(location.search), p=q.get('p'), m=q.get('m'), k=q.get('k'), u=Math.max(1,+(q.get('u')||1));
 (async()=>{ try{
   if(!p||!m||!k) throw new Error('リンクが正しくありません。Notionの案件のページから開いてください。');
