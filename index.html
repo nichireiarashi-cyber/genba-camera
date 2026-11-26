@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>AiCONカメラ</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:#fff;color:#0b1f3a;font:16px/1.6 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;text-align:center}a{color:#0073E6;font-weight:700}</style>
+</head>
+<body>
+<div id="o"><p>読み込んでいます…</p></div>
+<script>
+// AiCONカメラ(現場)の入口。画面の本体と見本の写真は、リンクの鍵を確かめてからGoogleが渡す(ここには何も置かない)
+const API='https://script.google.com/macros/s/AKfycby45zVsh3JbZauIDJrD3SUc7Ze_Q8lN9021bbfdE6mOkx17_Br0lYgUxY6sEnkmEh9Z/exec';
+const q=new URLSearchParams(location.search), p=q.get('p'), m=q.get('m'), k=q.get('k'), u=Math.max(1,+(q.get('u')||1));
+(async()=>{ try{
+  if(!p||!m||!k) throw new Error('リンクが正しくありません。Notionの案件のページから開いてください。');
+  const j=await (await fetch(API,{method:'POST',body:JSON.stringify({a:'start',p,m,k})})).json();
+  if(!j.ok) throw new Error(j.error||'読み込めませんでした');
+  const G={p,m,k,unit:Math.min(u,j.units),units:j.units,no:j.no,kind:j.kind,url:API};
+  const html=j.html.replace('<head>','<head><script>window.GENBA='+JSON.stringify(G)+'<\/script>');
+  document.open(); document.write(html); document.close();
+}catch(e){ document.getElementById('o').innerHTML='<p>'+String(e.message||e).replace(/</g,'&lt;')+'</p><p><a href="">開き直す</a></p>'; } })();
+</script>
+</body>
+</html>
