@@ -14,19 +14,22 @@
 // AiCONカメラ(現場)の入口。画面の本体と見本の写真は、リンクの鍵を確かめてからGoogleが渡す(ここには何も置かない)
 const API='https://script.google.com/macros/s/AKfycbxgy8vDKEh41fEygoM7yN893YwYfc8vW93ivVblweCdcMWYjg4l8c4YgZldt49uf-hp-g/exec';
 const q=new URLSearchParams(location.search), p=q.get('p'), m=q.get('m'), k=q.get('k'), u=Math.max(1,+(q.get('u')||1));
+const ls={get:k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+function nextUnit(units){ let un=u; if(!q.get('u')){ const d=+(ls.get('genba_'+p+'_'+m)||0); if(d>=1&&d<units) un=d+1; } return Math.min(un,units); }
+function render(html,c){ const G={p,m,k,unit:nextUnit(c.units),units:c.units,no:c.no,kind:c.kind,url:API};
+  document.open(); document.write(html.replace('<head>','<head><script>window.GENBA='+JSON.stringify(G)+'<\/script>')); document.close(); }
+function fail(e){ document.getElementById('o').innerHTML='<p>'+String(e.message||e).replace(/</g,'&lt;')+'</p><p><a href="">開き直す</a></p>'; }
 (async()=>{ try{
   if(!p||!m||!k) throw new Error('リンクが正しくありません。Notionの案件のページから開いてください。');
-  // 画面の本体(約1MB)はスマホに覚えておき、版が同じなら送ってもらわない(2回目から速い)
-  let cv='',ch=''; try{ cv=localStorage.getItem('genba_page_ver')||''; ch=localStorage.getItem('genba_page')||''; }catch(e){}
-  const j=await (await fetch(API,{method:'POST',body:JSON.stringify({a:'start',p,m,k,v:ch?cv:''})})).json();
-  if(!j.ok) throw new Error(j.error||'読み込めませんでした');
-  if(j.html){ try{ localStorage.setItem('genba_page',j.html); localStorage.setItem('genba_page_ver',j.ver); }catch(e){} } else j.html=ch;
-  // u が無い時は、このスマホで撮り終わった台の次から(撮り終わった台はカメラが覚えている)
-  let un=u; if(!q.get('u')){ try{ const d=+(localStorage.getItem('genba_'+p+'_'+m)||0); if(d>=1&&d<j.units) un=d+1; }catch(e){} }
-  const G={p,m,k,unit:Math.min(un,j.units),units:j.units,no:j.no,kind:j.kind,url:API};
-  const html=j.html.replace('<head>','<head><script>window.GENBA='+JSON.stringify(G)+'<\/script>');
-  document.open(); document.write(html); document.close();
-}catch(e){ document.getElementById('o').innerHTML='<p>'+String(e.message||e).replace(/</g,'&lt;')+'</p><p><a href="">開き直す</a></p>'; } })();
+  // 画面の本体(約1MB)はスマホに覚えておき、版が同じなら送ってもらわない。同じ案件を前に開いていれば、確かめは裏で回して画面をすぐ出す
+  const cv=ls.get('genba_page_ver'), ch=ls.get('genba_page'), cc=ls.get('genba_case_'+p);
+  const ask=fetch(API,{method:'POST',body:JSON.stringify({a:'start',p,m,k,v:ch?cv:''})}).then(r=>r.json());
+  if(ch&&cc){ render(ch,JSON.parse(cc)); ask.then(j=>{ if(j.ok){ ls.set('genba_case_'+p,JSON.stringify({units:j.units,no:j.no,kind:j.kind})); if(j.html){ ls.set('genba_page',j.html); ls.set('genba_page_ver',j.ver); } } }).catch(()=>{}); return; }
+  const j=await ask; if(!j.ok) throw new Error(j.error||'読み込めませんでした');
+  if(j.html){ ls.set('genba_page',j.html); ls.set('genba_page_ver',j.ver); } else j.html=ch;
+  ls.set('genba_case_'+p,JSON.stringify({units:j.units,no:j.no,kind:j.kind}));
+  render(j.html,j);
+}catch(e){ fail(e); } })();
 </script>
 </body>
 </html>
