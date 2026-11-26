@@ -18,7 +18,9 @@ const q=new URLSearchParams(location.search), p=q.get('p'), m=q.get('m'), k=q.ge
   if(!p||!m||!k) throw new Error('リンクが正しくありません。Notionの案件のページから開いてください。');
   const j=await (await fetch(API,{method:'POST',body:JSON.stringify({a:'start',p,m,k})})).json();
   if(!j.ok) throw new Error(j.error||'読み込めませんでした');
-  const G={p,m,k,unit:Math.min(u,j.units),units:j.units,no:j.no,kind:j.kind,url:API};
+  // u が無い時は、このスマホで撮り終わった台の次から(撮り終わった台はカメラが覚えている)
+  let un=u; if(!q.get('u')){ try{ const d=+(localStorage.getItem('genba_'+p+'_'+m)||0); if(d>=1&&d<j.units) un=d+1; }catch(e){} }
+  const G={p,m,k,unit:Math.min(un,j.units),units:j.units,no:j.no,kind:j.kind,url:API};
   const html=j.html.replace('<head>','<head><script>window.GENBA='+JSON.stringify(G)+'<\/script>');
   document.open(); document.write(html); document.close();
 }catch(e){ document.getElementById('o').innerHTML='<p>'+String(e.message||e).replace(/</g,'&lt;')+'</p><p><a href="">開き直す</a></p>'; } })();
