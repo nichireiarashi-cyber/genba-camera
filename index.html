@@ -24,7 +24,7 @@ function fail(e){ document.getElementById('o').innerHTML='<p>'+String(e.message|
   // 画面の本体(約1MB)はスマホに覚えておき、版が同じなら送ってもらわない。同じ案件を前に開いていれば、確かめは裏で回して画面をすぐ出す
   const cv=ls.get('genba_page_ver'), ch=ls.get('genba_page'), cc=ls.get('genba_case_'+p);
   const ask=fetch(API,{method:'POST',body:JSON.stringify({a:'start',p,m,k,v:ch?cv:''})}).then(r=>r.json());
-  if(ch&&cc){ render(ch,JSON.parse(cc)); ask.then(j=>{ if(j.ok){ ls.set('genba_case_'+p,JSON.stringify({units:j.units,no:j.no,kind:j.kind})); if(j.html){ ls.set('genba_page',j.html); ls.set('genba_page_ver',j.ver); } } }).catch(()=>{}); return; }
+  if(ch&&cc){ render(ch,JSON.parse(cc)); ask.then(j=>{ if(j.ok){ ls.set('genba_case_'+p,JSON.stringify({units:j.units,no:j.no,kind:j.kind})); if(j.html){ ls.set('genba_page',j.html); ls.set('genba_page_ver',j.ver); if(typeof bar==='function') bar('新しい版になりました','押して開き直す',()=>location.reload()); } } else if(typeof bar==='function') bar(j.error||'読み込めませんでした','閉じる',()=>{document.getElementById('vbar').hidden=true}); }).catch(()=>{}); return; }
   const j=await ask; if(!j.ok) throw new Error(j.error||'読み込めませんでした');
   if(j.html){ ls.set('genba_page',j.html); ls.set('genba_page_ver',j.ver); } else j.html=ch;
   ls.set('genba_case_'+p,JSON.stringify({units:j.units,no:j.no,kind:j.kind}));
